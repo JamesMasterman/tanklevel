@@ -105,6 +105,10 @@ void readDistance()
            {
               reader->CalculateVolume((distance - MinDistance)/10.0);
            }
+           else
+           {
+             reader->CalculateVolume(0);
+           }
        }
    }
 }
