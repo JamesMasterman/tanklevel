@@ -9,7 +9,7 @@ LevelReader::LevelReader(SerialBufferBase* serial)
   mVolume = 0;
   mDistance = 0;
   mLastDistance = -1;
-  mOutOfPhaseReadingCount = 0;
+  mLastTime = 0;
   mSerial = serial;
 }
 
@@ -82,29 +82,28 @@ void LevelReader::Read()
 void LevelReader::SaveDistance(double distance)
 {
   const double Tolerance = 0.05;
-  const int MaxOutOfPhase = 200;
   const float MinDistance = 290;
   const double MMtoCM = 10;
+  const double RateOfChangeCmPerMin = 2;
+  const double RateOfChangeCmPerMillis = RateOfChangeCmPerMin/60000;
 
   mDistance = distance > MinDistance?distance:MinDistance;
   mDistance/= MMtoCM;
-  if(mOutOfPhaseReadingCount > MaxOutOfPhase)
-  {
-    mOutOfPhaseReadingCount=0;
-    mLastDistance = mDistance;
-  }
 
   double change = abs(mDistance - mLastDistance);
-  double allowableChange = mLastDistance * Tolerance;
-  if(mLastDistance > -1 && change > allowableChange)
-  {
-     mDistance = mLastDistance;
-     mOutOfPhaseReadingCount++;
-  }
-  else
+  double timeChange = millis() - mLastTime;
+  double rateOfChange = change/timeChange;
+  if(mLastDistance > -1 && rateOfChange < RateOfChangeCmPerMin)
   {
     CalculateVolume();
     mLastDistance = mDistance;
+    mLastTime = millis();
+  }
+
+  if(mLastDistance < 0)
+  {
+    mLastDistance = mDistance;
+    mLastTime = millis();
   }
 }
 

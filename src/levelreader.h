@@ -26,7 +26,8 @@
    double mVolume;
    double mDistance;
    double mLastDistance;
-   int mOutOfPhaseReadingCount;
+   long   mLastTime;
+
    SerialBufferBase* mSerial;
 
  };
