@@ -2,21 +2,32 @@
 #define LEVEL_READER
 #include "application.h"
 #include "Particle.h"
+#include "SerialBufferRK.h"
 
  class LevelReader
  {
 
  public:
-   LevelReader();
+   LevelReader(SerialBufferBase* serial);
    ~LevelReader();
 
+   void Read();
    double GetPercentage();
-   double GetVolume();
-   void CalculateVolume(double distance);
+   int GetVolume();
+   double GetDistance();
+
+ private:
+   double SingleReading();
+   void CalculateVolume();
+   void SaveDistance(double distance);
 
  private:
    double mPercent;
    double mVolume;
+   double mDistance;
+   double mLastDistance;
+   int mOutOfPhaseReadingCount;
+   SerialBufferBase* mSerial;
 
  };
 
