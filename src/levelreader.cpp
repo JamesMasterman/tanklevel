@@ -84,7 +84,7 @@ void LevelReader::SaveDistance(double distance)
   const double Tolerance = 0.05;
   const float MinDistance = 290;
   const double MMtoCM = 10;
-  const double RateOfChangeCmPerMin = 2;
+  const double RateOfChangeCmPerMin = 0.3;
   const double RateOfChangeCmPerMillis = RateOfChangeCmPerMin/60000;
 
   mDistance = distance > MinDistance?distance:MinDistance;
