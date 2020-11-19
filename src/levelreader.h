@@ -18,14 +18,14 @@
 
  private:
    double SingleReading();
-   void CalculateVolume();
+   bool CalculateVolume(double distance);
    void SaveDistance(double distance);
 
  private:
    double mPercent;
    double mVolume;
    double mDistance;
-   double mLastDistance;
+   double mLastVolume;
    long   mLastTime;
 
    SerialBufferBase* mSerial;

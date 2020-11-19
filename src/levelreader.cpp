@@ -8,7 +8,7 @@ LevelReader::LevelReader(SerialBufferBase* serial)
   mPercent = 0;
   mVolume = 0;
   mDistance = 0;
-  mLastDistance = -1;
+  mLastVolume = -1;
   mLastTime = 0;
   mSerial = serial;
 }
@@ -81,49 +81,56 @@ void LevelReader::Read()
 
 void LevelReader::SaveDistance(double distance)
 {
-  const double Tolerance = 0.05;
   const float MinDistance = 290;
   const double MMtoCM = 10;
-  const double RateOfChangeCmPerMin = 0.3;
-  const double RateOfChangeCmPerMillis = RateOfChangeCmPerMin/60000;
 
-  mDistance = distance > MinDistance?distance:MinDistance;
-  mDistance/= MMtoCM;
+  distance = distance > MinDistance?distance:MinDistance;
+  distance/= MMtoCM;
 
-  double change = abs(mDistance - mLastDistance);
-  double timeChange = millis() - mLastTime;
-  double rateOfChange = change/timeChange;
-  if(mLastDistance > -1 && rateOfChange < RateOfChangeCmPerMin)
+  if(CalculateVolume(distance))
   {
-    CalculateVolume();
-    mLastDistance = mDistance;
-    mLastTime = millis();
-  }
-
-  if(mLastDistance < 0)
-  {
-    mLastDistance = mDistance;
-    mLastTime = millis();
+     mDistance = distance;
   }
 }
 
-void LevelReader::CalculateVolume()
+bool LevelReader::CalculateVolume(double distance)
 {
   const double TopOfWaterDistanceOffsetCm  = 30;
   const double MaxHeightCm = 200.0;
   const double PlateAreaM2 = 58.4940;
   const double LitresPerCum = 1000.0;
   const double CmPerMetre = 100.0;
-  double topOfWaterDistanceCm =  mDistance - TopOfWaterDistanceOffsetCm;
+  const double MaxRateOfChangeLitresPerMinute = 250;
+  const double MillisPerMinute = 60000;
+
+  double topOfWaterDistanceCm =  distance - TopOfWaterDistanceOffsetCm;
   if(topOfWaterDistanceCm < 0) topOfWaterDistanceCm = 0;
   if(topOfWaterDistanceCm > MaxHeightCm) topOfWaterDistanceCm = MaxHeightCm;
 
-  mPercent = (MaxHeightCm - topOfWaterDistanceCm)/MaxHeightCm  * 100.0;
-  mVolume = ((MaxHeightCm - topOfWaterDistanceCm)/CmPerMetre) * PlateAreaM2 * LitresPerCum;
+  double volume = ((MaxHeightCm - topOfWaterDistanceCm)/CmPerMetre) * PlateAreaM2 * LitresPerCum;
+  if(volume < 0) volume = 0;
+  if(mLastVolume < 0)
+  {
+    mLastVolume = volume;
+  }
 
-  if(mPercent > 100) mPercent = 100;
-  if(mPercent < 0) mPercent = 0;
-  if(mVolume < 0) mVolume = 0;
+  double change = abs(volume - mLastVolume);
+  double timeChangeMins = (millis() - mLastTime)/MillisPerMinute;
+  double rateOfChangePerMin = change/timeChangeMins;
+
+  if(rateOfChangePerMin < MaxRateOfChangeLitresPerMinute)
+  {
+    mPercent = (MaxHeightCm - topOfWaterDistanceCm)/MaxHeightCm  * 100.0;
+    if(mPercent > 100) mPercent = 100;
+    if(mPercent < 0) mPercent = 0;
+
+    mVolume = volume;
+    mLastTime = millis();
+    mLastVolume = mVolume;
+    return true;
+  }
+
+  return false;
 }
 
 int LevelReader::GetVolume()
