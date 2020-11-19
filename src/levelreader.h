@@ -3,6 +3,7 @@
 #include "application.h"
 #include "Particle.h"
 #include "SerialBufferRK.h"
+#include "RunningAverage.h"
 
  class LevelReader
  {
@@ -22,11 +23,12 @@
    void SaveDistance(double distance);
 
  private:
-   double mPercent;
-   double mVolume;
+
    double mDistance;
    double mLastVolume;
    long   mLastTime;
+   RunningAverage* mAverageVolume;
+   RunningAverage* mAveragePercent;
 
    SerialBufferBase* mSerial;
 

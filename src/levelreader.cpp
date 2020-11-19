@@ -5,12 +5,12 @@
 
 LevelReader::LevelReader(SerialBufferBase* serial)
 {
-  mPercent = 0;
-  mVolume = 0;
   mDistance = 0;
   mLastVolume = -1;
   mLastTime = 0;
   mSerial = serial;
+  mAverageVolume = new RunningAverage(100);
+  mAveragePercent = new RunningAverage(100);
 }
 
 LevelReader::~LevelReader()
@@ -100,7 +100,7 @@ bool LevelReader::CalculateVolume(double distance)
   const double PlateAreaM2 = 58.4940;
   const double LitresPerCum = 1000.0;
   const double CmPerMetre = 100.0;
-  const double MaxRateOfChangeLitresPerMinute = 250;
+  const double MaxRateOfChangeLitresPerMinute = 300;
   const double MillisPerMinute = 60000;
 
   double topOfWaterDistanceCm =  distance - TopOfWaterDistanceOffsetCm;
@@ -120,13 +120,15 @@ bool LevelReader::CalculateVolume(double distance)
 
   if(rateOfChangePerMin < MaxRateOfChangeLitresPerMinute)
   {
-    mPercent = (MaxHeightCm - topOfWaterDistanceCm)/MaxHeightCm  * 100.0;
-    if(mPercent > 100) mPercent = 100;
-    if(mPercent < 0) mPercent = 0;
+    double percent = (MaxHeightCm - topOfWaterDistanceCm)/MaxHeightCm  * 100.0;
+    if(percent > 100) percent = 100;
+    if(percent < 0) percent = 0;
 
-    mVolume = volume;
+    mAveragePercent->addValue(percent);
+    mAverageVolume->addValue(volume);
+
     mLastTime = millis();
-    mLastVolume = mVolume;
+    mLastVolume = volume;
     return true;
   }
 
@@ -135,10 +137,14 @@ bool LevelReader::CalculateVolume(double distance)
 
 int LevelReader::GetVolume()
 {
-  return (int)mVolume;
+  int avg = (int)mAverageVolume->getAverage();
+  mAverageVolume->clear();
+  return avg;
 }
 
 double LevelReader::GetPercentage()
 {
-  return mPercent;
+  double avg = mAveragePercent->getAverage();
+  mAveragePercent->clear();
+  return avg;
 }
