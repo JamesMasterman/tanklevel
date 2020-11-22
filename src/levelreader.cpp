@@ -2,15 +2,22 @@
 #include "application.h"
 #include "Particle.h"
 
+const double MaxRateOfChangeLitresPerMinute = 300;
+const double MaxRateOfChangePercPerMinute = 2;
+const double MillisPerMinute = 60000;
 
 LevelReader::LevelReader(SerialBufferBase* serial)
 {
+  const int ReadingsToAverageCapacity = 100;
   mDistance = 0;
-  mLastVolume = -1;
-  mLastTime = 0;
   mSerial = serial;
-  mAverageVolume = new RunningAverage(100);
-  mAveragePercent = new RunningAverage(100);
+  mLastAverageVolume = -1;
+  mLastAverageVolTime = 0;
+  mLastAveragePercent = -1;
+  mLastAveragePercTime = 0;
+  mAverageVolume = new RunningAverage(ReadingsToAverageCapacity);
+  mAveragePercent = new RunningAverage(ReadingsToAverageCapacity);
+
 }
 
 LevelReader::~LevelReader()
@@ -100,8 +107,6 @@ bool LevelReader::CalculateVolume(double distance)
   const double PlateAreaM2 = 58.4940;
   const double LitresPerCum = 1000.0;
   const double CmPerMetre = 100.0;
-  const double MaxRateOfChangeLitresPerMinute = 300;
-  const double MillisPerMinute = 60000;
 
   double topOfWaterDistanceCm =  distance - TopOfWaterDistanceOffsetCm;
   if(topOfWaterDistanceCm < 0) topOfWaterDistanceCm = 0;
@@ -109,42 +114,61 @@ bool LevelReader::CalculateVolume(double distance)
 
   double volume = ((MaxHeightCm - topOfWaterDistanceCm)/CmPerMetre) * PlateAreaM2 * LitresPerCum;
   if(volume < 0) volume = 0;
-  if(mLastVolume < 0)
-  {
-    mLastVolume = volume;
-  }
 
-  double change = abs(volume - mLastVolume);
-  double timeChangeMins = (millis() - mLastTime)/MillisPerMinute;
-  double rateOfChangePerMin = change/timeChangeMins;
+  double percent = (MaxHeightCm - topOfWaterDistanceCm)/MaxHeightCm  * 100.0;
+  if(percent > 100) percent = 100;
+  if(percent < 0) percent = 0;
 
-  if(rateOfChangePerMin < MaxRateOfChangeLitresPerMinute)
-  {
-    double percent = (MaxHeightCm - topOfWaterDistanceCm)/MaxHeightCm  * 100.0;
-    if(percent > 100) percent = 100;
-    if(percent < 0) percent = 0;
+  mAveragePercent->addValue(percent);
+  mAverageVolume->addValue(volume);
 
-    mAveragePercent->addValue(percent);
-    mAverageVolume->addValue(volume);
+  return true;
 
-    mLastTime = millis();
-    mLastVolume = volume;
-    return true;
-  }
-
-  return false;
 }
 
 int LevelReader::GetVolume()
 {
-  int avg = (int)mAverageVolume->getAverage();
+  double avgVol = mAverageVolume->getAverage();
   mAverageVolume->clear();
-  return avg;
+  if(mLastAverageVolume < 0)
+  {
+    mLastAverageVolume = avgVol;
+  }
+
+  if(ChangeIsValid(avgVol, mLastAverageVolume, mLastAverageVolTime, MaxRateOfChangeLitresPerMinute))
+  {
+    mLastAverageVolume = avgVol;
+    mLastAverageVolTime  = millis();
+    return (int)avgVol;
+  }
+
+  return (int)mLastAverageVolume;
 }
 
 double LevelReader::GetPercentage()
 {
-  double avg = mAveragePercent->getAverage();
+  double avgPerc = mAveragePercent->getAverage();
   mAveragePercent->clear();
-  return avg;
+  if(mLastAveragePercent < 0)
+  {
+    mLastAveragePercent = avgPerc;
+  }
+
+  if(ChangeIsValid(avgPerc, mLastAveragePercent, mLastAveragePercTime, MaxRateOfChangePercPerMinute))
+  {
+    mLastAveragePercent = avgPerc;
+    mLastAveragePercTime  = millis();
+    return avgPerc;
+  }
+
+  return mLastAveragePercent;
+}
+
+bool LevelReader::ChangeIsValid(double value, double previousValue, long previousTime, double maxRateOfChangePerMin)
+{
+  double change = abs(value - previousValue);
+  double timeChangeMins = (millis() - previousTime)/MillisPerMinute;
+  double rateOfChangePerMin = change/timeChangeMins;
+
+  return rateOfChangePerMin <= maxRateOfChangePerMin;
 }
