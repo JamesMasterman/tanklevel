@@ -2,8 +2,8 @@
 #include "application.h"
 #include "Particle.h"
 
-const double MaxRateOfChangeLitresPerMinute = 300;
-const double MaxRateOfChangePercPerMinute = 2;
+const double MaxRateOfChangeLitresPerMinute = 250;
+const double MaxRateOfChangePercPerMinute = 1;
 const double MillisPerMinute = 60000;
 
 LevelReader::LevelReader(SerialBufferBase* serial)
