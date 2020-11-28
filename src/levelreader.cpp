@@ -2,7 +2,7 @@
 #include "application.h"
 #include "Particle.h"
 
-const double MaxRateOfChangeLitresPerMinute = 250;
+const double MaxRateOfChangeLitresPerMinute = 450;
 const double MaxRateOfChangePercPerMinute = 1;
 const double MillisPerMinute = 60000;
 
