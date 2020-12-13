@@ -94,7 +94,7 @@ void LevelReader::SaveDistance(double distance)
   if(mDistance > 0)
   {
     //Complimentary filter on distance
-    distance = mDistance * 0.5 + distance * 0.5;
+    distance = mDistance * 0.85 + distance * 0.15;
   }
 
   CalculateMetrics(distance);
