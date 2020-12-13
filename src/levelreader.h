@@ -31,6 +31,9 @@
    double mLastVolume;
    double   mLastVolTime;
 
+   double mLastAvgVol;
+   double mLastAvgPerc;
+
    SerialBufferBase* mSerial;
 
  };

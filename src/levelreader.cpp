@@ -15,6 +15,8 @@ LevelReader::LevelReader(SerialBufferBase* serial)
   mLastVolTime = 0;
   mAverageVolume = new RunningAverage(ReadingsToAverageCapacity);
   mAveragePercent = new RunningAverage(ReadingsToAverageCapacity);
+  mLastAvgVol = 0;
+  mLastAvgPerc = 0;
 }
 
 LevelReader::~LevelReader()
@@ -85,29 +87,30 @@ void LevelReader::Read()
 
 void LevelReader::SaveDistance(double distance)
 {
+  const float MinReading = 0.1;
   const float MinDistance = 290;
   const double MMtoCM = 10;
 
   distance = distance > MinDistance?distance:MinDistance;
   distance/= MMtoCM;
 
-  if(mDistance > 0)
+  if(mDistance < 0) mDistance = distance;
+  if(mDistance > MinReading)
   {
     //Complimentary filter on distance
     distance = mDistance * 0.85 + distance * 0.15;
+    CalculateMetrics(distance);
+    mDistance = distance;
   }
-
-  CalculateMetrics(distance);
-  mDistance = distance;
 }
 
 bool LevelReader::CalculateMetrics(double distance)
 {
-  const double TopOfWaterDistanceOffsetCm  = 25;
-  const double MaxHeightCm = 200.0;
   const double PlateAreaM2 = 58.4940;
   const double LitresPerCum = 1000.0;
   const double CmPerMetre = 100.0;
+  const double TopOfWaterDistanceOffsetCm  = 25;
+  const double MaxHeightCm = 200.0;
 
   double topOfWaterDistanceCm =  distance - TopOfWaterDistanceOffsetCm;
   if(topOfWaterDistanceCm < 0) topOfWaterDistanceCm = 0;
@@ -141,14 +144,27 @@ int LevelReader::GetVolume()
 {
   double avgVol = mAverageVolume->getAverage();
   mAverageVolume->clear();
-  return (int)avgVol;
+
+  if(avgVol > 0){
+    mLastAvgVol = avgVol;
+    return (int) avgVol;
+  }else{
+    return mLastAvgVol;
+  }
 }
 
 double LevelReader::GetPercentage()
 {
   double avgPerc = mAveragePercent->getAverage();
   mAveragePercent->clear();
-  return avgPerc;
+
+  if(avgPerc >0)
+  {
+    mLastAvgPerc = avgPerc;
+    return avgPerc;
+  }else{
+    return mLastAvgPerc;
+  }
 }
 
 bool LevelReader::ChangeIsValid(double value, double previousValue, long previousTime, double maxRateOfChangePerMin)
