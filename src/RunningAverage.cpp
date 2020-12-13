@@ -26,7 +26,7 @@
 #include "RunningAverage.h"
 #include <stdlib.h>
 
-RunningAverage::RunningAverage(uint8_t size)
+RunningAverage::RunningAverage(uint32_t size)
 {
     _size = size;
     _ar = (double*) malloc(_size * sizeof(double));
@@ -45,7 +45,7 @@ void RunningAverage::clear()
     _cnt = 0;
     _idx = 0;
     _sum = 0.0;
-    for (uint8_t i = 0; i< _size; i++)
+    for (uint32_t i = 0; i< _size; i++)
     {
         _ar[i] = 0.0; // keeps addValue simple
     }
@@ -67,11 +67,11 @@ void RunningAverage::addValue(double value)
 double RunningAverage::getAverage()
 {
     if (_cnt == 0) return 0;
-    return _sum / _cnt;
+    return _sum / (double)_cnt;
 }
 
 // returns the value of an element if exist, 0 otherwise
-double RunningAverage::getElement(uint8_t idx)
+double RunningAverage::getElement(uint32_t idx)
 {
     if (idx >=_cnt ) return 0;
     return _ar[idx];
@@ -80,11 +80,11 @@ double RunningAverage::getElement(uint8_t idx)
 // fill the average with a value
 // the param number determines how often value is added (weight)
 // number should preferably be between 1 and size
-void RunningAverage::fillValue(double value, uint8_t number)
+void RunningAverage::fillValue(double value, uint32_t number)
 {
     clear(); // TODO conditional?  if (clr) clear();
 
-    for (uint8_t i = 0; i < number; i++)
+    for (uint32_t i = 0; i < number; i++)
     {
         addValue(value);
     }

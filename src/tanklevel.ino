@@ -4,14 +4,14 @@
 
 //Thingsboard settings
 const char THINGSBOARD_SERVER[] = "192.168.1.8";
-const char DeviceAttributes[] = "{\"firmware_version\":\"1.5.2\",\"software_version\":\"1.0\"}";
+const char DeviceAttributes[] = "{\"firmware_version\":\"1.5.2\",\"software_version\":\"1.2\"}";
 #define THINGSBOARD_PORT 1883
 #define TOKEN "9sJaRrySzwBn3QgkshnB"
 
 const unsigned long ONE_MIN_MS = 60*1000;
 const unsigned long WATCHDOG_TIMEOUT_MS = 15*ONE_MIN_MS; //timeout for watchdog
 const unsigned long LOOP_TIME_MS= 1000;
-const unsigned long SEND_INTERVAL_MS = ONE_MIN_MS;
+const unsigned long SEND_INTERVAL_MS = 2*ONE_MIN_MS;
 
 STARTUP(WiFi.selectAntenna(ANT_INTERNAL));
 ApplicationWatchdog wd(WATCHDOG_TIMEOUT_MS, System.reset);

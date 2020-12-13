@@ -26,23 +26,23 @@ class RunningAverage
 {
 public:
     RunningAverage(void);
-    RunningAverage(uint8_t);
+    RunningAverage(uint32_t);
     ~RunningAverage();
 
     void clear();
     void addValue(double);
-    void fillValue(double, uint8_t);
+    void fillValue(double, uint32_t);
 
     double getAverage();
 
-    double getElement(uint8_t idx);
+    double getElement(uint32_t idx);
     uint8_t getSize() { return _size; }
     uint8_t getCount() { return _cnt; }
 
 protected:
-    uint8_t _size;
-    uint8_t _cnt;
-    uint8_t _idx;
+    uint32_t _size;
+    uint32_t _cnt;
+    uint32_t _idx;
     double   _sum;
     double * _ar;
 };

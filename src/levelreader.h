@@ -19,7 +19,7 @@
 
  private:
    double SingleReading();
-   bool CalculateVolume(double distance);
+   bool CalculateMetrics(double distance);
    void SaveDistance(double distance);
    bool ChangeIsValid(double value, double previousValue, long previousTime, double maxRateOfChange);
 
@@ -28,10 +28,8 @@
    double mDistance;
    RunningAverage* mAverageVolume;
    RunningAverage* mAveragePercent;
-   double mLastAverageVolume;
-   long   mLastAverageVolTime;
-   double mLastAveragePercent;
-   long   mLastAveragePercTime;
+   double mLastVolume;
+   double   mLastVolTime;
 
    SerialBufferBase* mSerial;
 
