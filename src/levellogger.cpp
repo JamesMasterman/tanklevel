@@ -13,9 +13,8 @@ LevelLogger::~LevelLogger()
 
 void LevelLogger::Send(double percentage, double volume)
 {
-    if(!SendData(percentage, volume))
+    if(EnsureConnected())
     {
-      EnsureConnected();
       SendData(percentage, volume);
     }
 }

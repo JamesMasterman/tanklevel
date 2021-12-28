@@ -109,7 +109,7 @@ bool LevelReader::CalculateMetrics(double distance)
   const double PlateAreaM2 = 58.4940;
   const double LitresPerCum = 1000.0;
   const double CmPerMetre = 100.0;
-  const double TopOfWaterDistanceOffsetCm  = 25;
+  const double TopOfWaterDistanceOffsetCm  = 20;
   const double MaxHeightCm = 200.0;
 
   double topOfWaterDistanceCm =  distance - TopOfWaterDistanceOffsetCm;
